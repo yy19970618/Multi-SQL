@@ -1,0 +1,559 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+
+options
+{
+  static = false;
+  IGNORE_CASE=true;
+  lookahead = 1;
+}
+
+PARSER_BEGIN(MultiSQLPaser)
+package test;
+
+public class MultiSQLPaser
+{
+  public static void main(String args []) throws ParseException
+  {
+  while(true){
+    System.out.println("Reading from standard input...");
+    MultiSQLPaser p = new MultiSQLPaser(System.in);
+    try
+    {
+        SimpleNode n = p.Start();
+        n.dump("");
+        System.out.println("Thank you.");
+    }
+    catch (Exception e)
+    {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    }
+    }
+  }
+}
+
+PARSER_END(MultiSQLPaser)
+
+/*定义词法分析*/
+
+SKIP :
+{
+  " "
+}
+
+SKIP :
+{
+  "\n"
+| "\r"
+| "\r\n"
+}
+
+TOKEN : /*定义关键字*/
+{
+  < SELECT : "Select" >
+| < WHERE : "where" >
+| < FROM : "from" >
+| < JOIN : "Join" >
+| < LIKE : "like" >
+| < GROUP : "group" >
+| < ORDER : "order" >
+| < BY : "by" >
+| < VALUES : "values" >
+| < AND : "and" >
+| < OR : "or" >
+| < AS : "as" >
+| < IN : "in" >
+| < COUNT : "count" >
+| < SUM : "sum" >
+| < AVG : "avg" >
+| < MAX : "max" >
+| < MIN : "min" >
+| < BETWEEN : "between" >
+| < INIT : "init" >
+| < RULE : "rule" >
+| < MATCH : "match" >
+| < LIST : "list" >
+}
+
+TOKEN : /*定义符号*/
+{
+  < UNDERSCORE : "_" >
+| < COMMA : "," >
+| < POINT : "." >
+| < SEMICOLON : ";" >
+| < ALL : "*" >
+| < NEG : "-" >
+| < LEFTPARENTHESES : "(" >
+| < RIGHTPARENTHESES : ")" >
+| < EQUAL : "=" >
+| < LQUOTATION : "'" >
+| < LEFTQUOTATION : "\"" >
+| < HIGHER : ">" >
+| < LOWER : "< " >
+| < EHIGHER : ">=" >
+| < ELOWER : "<=" >
+| < LEFTREL : "<-" >
+| < RIGHTREL : "->" >
+| < LEFTPAREN : "{" >
+| < RIGHTPAREN : "}" >
+| < COLON : ":" >
+| < LEFTBRACKET : "[" >
+| < RIGHTBRACKET : "]" >
+}
+
+TOKEN : /* 定义整数 */
+{
+  < INTEGER_LITERAL : [ "1"-"9" ] (< DIGIT >)* >
+| < FLOAT_LITERAL : [ "1"-"9" ] (< DIGIT >)* < POINT > (< DIGIT >)* >
+| < STRDIGITS : "0" (< DIGIT >)* >
+}
+
+TOKEN : /*定义数字*/
+{
+  < #DIGIT : [ "0"-"9" ] >
+}
+
+TOKEN : /* 定义标识符 */
+{
+  < IDENTIFIER :
+    < LETTER >
+  | < LETTER > < DIGIT >
+  | (< DIGIT >)+
+  | (< LETTER >)+
+  | < LEFTQUOTATION >
+          ( < LETTER >
+          | < DIGIT >
+          | < UNDERSCORE >
+          )*
+          < LEFTQUOTATION >
+  | < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    | < UNDERSCORE >
+    )*
+    (
+      < LETTER >
+    | < DIGIT >
+    )+ >
+| < #LETTER : [ "a"-"z", "A"-"Z" ] >
+}
+
+//TOKEN : /* 定义标识符 */
+//{
+//  < IDENTIFIER :
+//    < LETTER >
+//  | < LETTER > < DIGIT >
+//  | (< LETTER >)+
+//  | (< LETTER >)+ < POINT > (< LETTER >)+
+//  | < LETTER > < POINT > (< DIGIT >)+
+//  | (< DIGIT >)+
+//  | < LEFTQUOTATION >
+//      ( < LETTER >
+//      | < DIGIT >
+//      | < UNDERSCORE >
+//      )*
+//      < LEFTQUOTATION >
+//
+//  | < LETTER >
+//    (
+//      < LETTER >
+//    | (< DIGIT >)+
+//    | < UNDERSCORE >
+//    )*
+//    (
+//      < LETTER >
+//    | < DIGIT >
+//    )+ >
+//| < #LETTER : [ "a"-"z", "A"-"Z" ] >
+//}
+
+/* 语法解析*/
+
+//String Start() :
+//{ String result;}
+//{
+//  result = Query()
+//  {s = result;}
+//  {
+//    return result;
+//  }
+//}
+
+SimpleNode Start() :
+{}
+{
+  Graob() ";"
+  {
+    return jjtThis;
+  }
+}
+
+void Expression() :
+{}
+{
+  SingleAttGraSFW()
+}
+
+//
+void Query() :
+{}
+{
+  SFW() [ SUFFIX() ]
+}
+
+
+//
+////
+void SUFFIX() :
+{}
+{
+  < ORDER > < BY > Attribute()
+| < GROUP > < BY > Attribute()
+}
+//
+
+
+
+void SFW() :
+{}
+{
+  < SELECT > SelectList() [ Fromclause() ][ JoinCell() ] [ < WHERE > Conditions() ]
+}
+
+
+
+//
+void SingleAttSFW() :
+{}
+{
+  < SELECT > Relation() [ < POINT > (Attribute()| < ALL >) ] [ Fromclause() ] [ JoinCell() ] [ < WHERE > Conditions() ]
+}
+
+void SingleAttGraSFW() :
+{}
+{
+  < SELECT > Path() [ Fromclause() ] [ < WHERE > Gramatch() ]
+}
+
+//
+void SelectList() :
+{}
+{
+  SelectItem()
+  [
+    (
+      < COMMA > SelectItem()
+    )+
+  ]
+}
+
+
+
+//
+void SelectItem() :
+{}
+{
+  Relation() [ < POINT > (Attribute()| < ALL >) ]
+| Func() < LEFTPARENTHESES > Relation() [ < POINT > (Attribute()| < ALL >) ] < RIGHTPARENTHESES > [ < AS > Attribute() ]
+}
+
+
+
+
+//
+void JoinCell() :
+{}
+{
+  < JOIN > Joinname() < LEFTPARENTHESES > JoinAttrCondition() < RIGHTPARENTHESES > JoinItemList() [ JoinEquCondition() ]
+}
+
+
+
+//
+void JoinItemList() :
+{}
+{
+  JoinItem()
+  [
+    (
+      < COMMA > JoinItem()
+    )+
+  ]
+}
+
+
+//
+void JoinAttrCondition() :
+{}
+{
+  EquCondition()
+  [
+    (
+      < COMMA > EquCondition()
+    )+
+  ]
+}
+
+
+//
+void EquCondition() :
+{}
+{
+  Attribute() < EQUAL > Relation() [ < POINT > Attribute() ]
+}
+
+
+//
+void JoinItem() :
+{}
+{
+  Relation()
+| SingleAttSFW()
+}
+
+
+
+//
+void JoinEquCondition() :
+{}
+{
+  Relation() < POINT > Attribute() < EQUAL > Relation() < POINT > Attribute()
+  [
+    (
+      < AND > Relation() < POINT > Attribute() < EQUAL > Relation() < POINT > Attribute()
+    )+
+  ]
+}
+
+
+//
+void Func() :
+{}
+{
+  < COUNT >
+| < SUM >
+| < AVG >
+| < MAX >
+| < MIN >
+}
+
+
+void Conditions() :
+{}
+{
+  Condition()
+  [
+    (
+      < AND > Condition()
+    )+
+  ]
+}
+
+
+void Condition() :
+{}
+{
+  Relation() [ < POINT > Attribute() ] Action()
+}
+
+
+
+
+
+void Action() :
+{}
+{
+  < EQUAL > Equal()
+| < BETWEEN > Between() < AND > Between()
+| < IN > < LEFTPARENTHESES > In() < RIGHTPARENTHESES >
+| < HIGHER > Higher()
+| < LOWER > Lower()
+| < EHIGHER > Higher()
+| < ELOWER > Lower()
+}
+//
+
+void Gramatch() :
+{}
+{
+  Relation() < POINT > Attribute() < LEFTPARENTHESES > Graphcon() < RIGHTPARENTHESES >
+}
+
+void Graphcon() :
+{}
+{
+  Graob()
+  [
+      (
+          Arrow() Graob()
+      )+
+  ]
+}
+
+void Graob() :
+{}
+{
+  Relation() < COLON > [ < LEFTPAREN > ] Object() [ < RIGHTPAREN > ]
+}
+
+void Matchob() :
+{}
+{
+    Relation() < COLON > Listob()
+}
+
+void Listob() :
+{}
+{
+    < LIST > Anglebracket() < LEFTPAREN > Object()
+    [
+        (
+            < COMMA > Object()
+        )+
+    ]
+    < RIGHTPAREN > Anglebracket()
+}
+
+void Object() :
+{}
+{
+  Attribute() < COLON >  triple()
+| triple()
+}
+
+
+void triple() :
+{}
+{
+  < LEFTPAREN > [ Attribute() ] [ < COMMA > ] [ Attribute() |  Compare() ] [ < COMMA > ] [ Attribute() ] < RIGHTPAREN >
+}
+
+void Path() :
+{}
+{
+ Relation()
+ [
+    (
+        < POINT > Attribute()
+    )+
+ ]
+}
+
+void Fromclause() :
+{}
+{
+  < FROM > Relation()
+}
+
+void Equal() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+| Attribute()
+}
+
+void Between() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+//
+void In() :
+{}
+{
+  SFW()
+| < LQUOTATION > IDENTIFIER() < LQUOTATION >
+  [
+    (
+      < COMMA > < LQUOTATION > IDENTIFIER() < LQUOTATION >
+    )+
+  ]
+}
+
+void Anglebracket() :
+{}
+{
+    < HIGHER >
+  | < LOWER >
+}
+
+void Arrow() :
+{}
+{
+  < LEFTREL >
+| < RIGHTREL >
+}
+
+void Higher() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+
+void Lower() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+//
+///*-------------------*/
+
+/*-------------------*/
+void Joinname() :
+{}
+{
+  Attribute()
+}
+
+void Attribute() :
+{}
+{
+  IDENTIFIER()
+}
+
+void Relation() :
+{}
+{
+  IDENTIFIER()
+}
+
+void Pattern() :
+{}
+{
+  < LQUOTATION >
+  (
+    IDENTIFIER()
+  | < STRDIGITS >
+  )
+  < LQUOTATION >
+}
+
+void Compare() :
+{}
+{
+  < EQUAL >
+| < HIGHER >
+| < LOWER >
+| < EHIGHER >
+| < ELOWER >
+}
+/*-------------------*/
+void IDENTIFIER() :
+{}
+{
+  < IDENTIFIER >
+}
+
+

@@ -1,0 +1,7 @@
+Select Person.id from Person Where Person.name = "Amy";
+Select Password.password From Password Where Password.id = "001";
+Select Blog from Blog Where Blog.Match({id:{=, "002"}, keyword:list< {value:{"like", phone}}> });
+Select Social.Path1.n3.pid from Social Where Social.Path1(Person:{name:{=, "Amy"}} -> Relation:{type:{=, "like"}} -> Person:{} <- Relation:{type:{=,"like"}} <- Person:{});
+Select Person.age from rel Where Person.id in (Select Social.Path1.n3.pid Where Social.Path1(Person:{name:{=, "Amy"}}  -> Relation:{type:{=, "like"}}-> Person:{} <- Relation:{type:{=,"like"}} <- Person:{}));
+Select {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]} From JOIN Person, Blog RULE {Person.id, Person.age, Person.gender, blogs:[{Blog.keyword, Blog.content}]} WITH Person.id = Blog.person Where Person.age = 20 and Person.gender = 0;
+Select {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]} From JOIN Person, Blog RULE {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]} WITH Person.id = Blog.person Where Person.age < 20 and Person.gender = 0 and Person.id in (Select Social.Path1.n2.pid Where Social.Path1(Person:{name:{=, "Amy"}} -> Relation:{type:{=, "like"}} -> Person:{}));

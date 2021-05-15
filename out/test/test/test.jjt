@@ -1,0 +1,826 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */
+
+options
+{
+  static = false;
+  IGNORE_CASE=true;
+  lookahead = 1;
+}
+
+PARSER_BEGIN(MultiSQLPaser)
+package test;
+
+public class MultiSQLPaser
+{
+  public static void main(String args []) throws ParseException
+  {
+  while(true){
+    System.out.println("Reading from standard input...");
+    MultiSQLPaser p = new MultiSQLPaser(System.in);
+    try
+    {
+        SimpleNode n = p.Start();
+        n.dump("");
+        System.out.println("Thank you.");
+    }
+    catch (Exception e)
+    {
+      System.out.println("Oops.");
+      System.out.println(e.getMessage());
+      e.printStackTrace();
+    }
+    }
+  }
+}
+
+PARSER_END(MultiSQLPaser)
+
+/*定义词法分析*/
+
+SKIP :
+{
+  " "
+}
+
+SKIP :
+{
+  "\n"
+| "\r"
+| "\r\n"
+}
+
+TOKEN : /*定义关键字*/
+{
+  < SELECT : "Select" >
+| < WHERE : "where" >
+| < JOIN : "Join" >
+| < LIKE : "like" >
+| < GROUP : "group" >
+| < ORDER : "order" >
+| < BY : "by" >
+| < VALUES : "values" >
+| < AND : "and" >
+| < OR : "or" >
+| < AS : "as" >
+| < IN : "in" >
+| < COUNT : "count" >
+| < SUM : "sum" >
+| < AVG : "avg" >
+| < MAX : "max" >
+| < MIN : "min" >
+| < BETWEEN : "between" >
+}
+
+TOKEN : /*定义符号*/
+{
+  < UNDERSCORE : "_" >
+| < COMMA : "," >
+| < POINT : "." >
+| < SEMICOLON : ";" >
+| < ALL : "*" >
+| < NEG : "-" >
+| < LEFTPARENTHESES : "(" >
+| < RIGHTPARENTHESES : ")" >
+| < EQUAL : "=" >
+| < LQUOTATION : "'" >
+| < LEFTQUOTATION : "\"" >
+| < HIGHER : ">" >
+| < LOWER : "< " >
+| < EHIGHER : ">=" >
+| < ELOWER : "<=" >
+}
+
+TOKEN : /* 定义整数 */
+{
+  < INTEGER_LITERAL : [ "1"-"9" ] (< DIGIT >)* >
+| < FLOAT_LITERAL : [ "1"-"9" ] (< DIGIT >)* < POINT > (< DIGIT >)* >
+| < STRDIGITS : "0" (< DIGIT >)* >
+}
+
+TOKEN : /*定义数字*/
+{
+  < #DIGIT : [ "0"-"9" ] >
+}
+
+TOKEN : /* 定义标识符 */
+{
+  < IDENTIFIER :
+    < LETTER >
+  | < LETTER > < DIGIT >
+  | (< DIGIT >)+
+  | (< LETTER >)+
+  | < LEFTQUOTATION >
+          ( < LETTER >
+          | < DIGIT >
+          | < UNDERSCORE >
+          )*
+          < LEFTQUOTATION >
+  | < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    | < UNDERSCORE >
+    )*
+    (
+      < LETTER >
+    | < DIGIT >
+    )+ >
+| < #LETTER : [ "a"-"z", "A"-"Z" ] >
+}
+
+//TOKEN : /* 定义标识符 */
+//{
+//  < IDENTIFIER :
+//    < LETTER >
+//  | < LETTER > < DIGIT >
+//  | (< LETTER >)+
+//  | (< LETTER >)+ < POINT > (< LETTER >)+
+//  | < LETTER > < POINT > (< DIGIT >)+
+//  | (< DIGIT >)+
+//  | < LEFTQUOTATION >
+//      ( < LETTER >
+//      | < DIGIT >
+//      | < UNDERSCORE >
+//      )*
+//      < LEFTQUOTATION >
+//
+//  | < LETTER >
+//    (
+//      < LETTER >
+//    | (< DIGIT >)+
+//    | < UNDERSCORE >
+//    )*
+//    (
+//      < LETTER >
+//    | < DIGIT >
+//    )+ >
+//| < #LETTER : [ "a"-"z", "A"-"Z" ] >
+//}
+
+/* 语法解析*/
+
+//String Start() :
+//{ String result;}
+//{
+//  result = Query()
+//  {s = result;}
+//  {
+//    return result;
+//  }
+//}
+
+SimpleNode Start() :
+{}
+{
+  Expression() ";"
+  {
+    return jjtThis;
+  }
+}
+
+void Expression() :
+{}
+{
+  Query()
+}
+
+//String Expression() :
+//{String i,s;}
+//{
+//    i = Query()
+//    {s = i;}
+//    {return s;}
+//}
+//
+void Query() :
+{}
+{
+  SFW() [ SUFFIX() ]
+}
+
+//String Query():
+//{String i, j,s;}
+//{
+//    i = SFW()
+//    {s = i;}
+//    [
+//        j = SUFFIX()
+//        {s = s + j;}
+//    ]
+//    {return s;}
+//}
+//
+////
+void SUFFIX() :
+{}
+{
+  < ORDER > < BY > Attribute()
+| < GROUP > < BY > Attribute()
+}
+//
+
+//String SUFFIX() :
+//{Token t,p; String i,s;}
+//{
+//    t = < ORDER > p = < BY > i = Attribute()
+//    {s = t.image + p.image + i;}
+//    {return s;}
+//    | t = < GROUP > p = < BY > i = Attribute()
+//          {s = t.image + p.image + i;}
+//          {return s;}
+//}
+
+void SFW() :
+{}
+{
+  < SELECT > SelectList() [ JoinCell() ] [ < WHERE > Conditions() ]
+}
+
+//String SFW() :
+//{Token t; String i,s;}
+//{
+//    t = < SELECT > i = SelectList()
+//    {s = t.image + i;}
+//    [ i = JoinCell() {s = s + i;} ]
+//    [ t = < WHERE > i = Conditions() {s = s+ t.image + i;} ]
+//    {return s;}
+//}
+
+//
+void SingleAttSFW() :
+{}
+{
+  < SELECT > Relation() [ < POINT > (Attribute()| < ALL >) ] [ JoinCell() ] [ < WHERE > Conditions() ]
+}
+
+//String SingleAttSFW() :
+//{Token t,p; String s,i;}
+//{
+//    t = < SELECT > i = Relation()
+//    {s = t.image + i;}
+//    [ t = < POINT > i = Attribute()
+//    {s = s + t.image + i;} ]
+//    [ i = JoinCell() {s = s + i;}]
+//    [ t = < WHERE > i = Conditions()
+//    {s = s + t.image + i;}]
+//    {return s;}
+//
+//    | t = < SELECT > i = Relation()
+//          {s = t.image + i;}
+//          [ t = < POINT > p = < ALL>
+//          {s = s + t.image + p.image;} ]
+//          [ i = JoinCell() {s = s + i;}]
+//          [ t = < WHERE > i = Conditions()
+//          {s = s + t.image + i;}]
+//          {return s;}
+//
+//}
+//
+void SelectList() :
+{}
+{
+  SelectItem()
+  [
+    (
+      < COMMA > SelectItem()
+    )+
+  ]
+}
+
+//String SelectList():
+//{Token t; String i, s;}
+//{
+//    i = SelectItem()
+//    {s = i;}
+//    [
+//      (
+//        t = < COMMA > i = SelectItem()
+//        {s = s + t.image + i;}
+//      )
+//    ]
+//    {return s;}
+//}
+
+//
+void SelectItem() :
+{}
+{
+  Relation() [ < POINT > (Attribute()| < ALL >) ]
+| Func() < LEFTPARENTHESES > Relation() [ < POINT > (Attribute()| < ALL >) ] < RIGHTPARENTHESES > [ < AS > Attribute() ]
+}
+
+
+//String SelectItem() :
+//{Token t,p; String i,j,s;}
+//{
+//  i = Relation()
+//  {s = i;}
+//  [ t = < POINT > i = Attribute()
+//  {s = s + t.image + i;} ]
+//  {return s;}
+//  |  i = Relation()
+//      {s = i;}
+//      [ t = < POINT > p = < ALL >
+//      {s = s + t.image + p;} ]
+//      {return s;}
+//  | i = Func() t = < LEFTPARENTHESES > j = Relation()
+//    {s = i + t.image + j;}
+//    [ t = < POINT > i = Attribute()
+//    {s = s + t.image + i;} ]
+//    t = < RIGHTPARENTHESES >
+//    {s = s + t.image;}
+//    [ t = < AS > i = Attribute()
+//    {s = s + t.image + i;} ]
+//    {return s;}
+//  | i = Func() t = < LEFTPARENTHESES > j = Relation()
+//        {s = i + t.image + j;}
+//        [ t = < POINT > p = < ALL >
+//        {s = s + t.image + p.image;} ]
+//        t = < RIGHTPARENTHESES >
+//        {s = s + t.image;}
+//        [ t = < AS > i = Attribute()
+//        {s = s + t.image + i;} ]
+//   {return s;}
+//}
+
+//
+void JoinCell() :
+{}
+{
+  < JOIN > Joinname() < LEFTPARENTHESES > JoinAttrCondition() < RIGHTPARENTHESES > JoinItemList() [ JoinEquCondition() ]
+}
+
+//String JoinCell() :
+//{Token t,p,q; String i,j,k,l,s;}
+//{
+//    t = < JOIN > i = Joinname() p = < LEFTPARENTHESES > j = JoinAttrCondition() q = < RIGHTPARENTHESES > k = JoinItemList()
+//    {s = t.image + i + p.image + j +q.image + k;}
+//    [ l = JoinEquCondition()  {s = s + l;}]
+//    {return s;}
+//}
+
+//
+void JoinItemList() :
+{}
+{
+  JoinItem()
+  [
+    (
+      < COMMA > JoinItem()
+    )+
+  ]
+}
+
+//String JoinItemList() :
+//{String i,s; Token t;}
+//{
+//    i = JoinItem()
+//    {s = i;}
+//    [
+//      (
+//        t = < COMMA > i = JoinItem()
+//        {s = s + t.image + i;}
+//      )+
+//    ]
+//    {return s;}
+//}
+//
+void JoinAttrCondition() :
+{}
+{
+  EquCondition()
+  [
+    (
+      < COMMA > EquCondition()
+    )+
+  ]
+}
+
+//String JoinAttrCondition() :
+//{String i, s; Token t;}
+//{
+//    i = EquCondition()
+//    {s = i;}
+//    [
+//      (t = < COMMA > i = EquCondition()
+//      {s = s + t.image + i;})+
+//    ]
+//    {return s;}
+//}
+//
+void EquCondition() :
+{}
+{
+  Attribute() < EQUAL > Relation() [ < POINT > Attribute() ]
+}
+
+//String EquCondition() :
+//{String i,j; Token t; String s;}
+//{
+//    i = Attribute() t = < EQUAL > j = Relation()
+//    {s = i + t.image + j;}
+//    [
+//      t = < POINT > i = Attribute()
+//      {s = s + t.image + i;}
+//    ]
+//
+//    {return s;}
+//}
+//
+void JoinItem() :
+{}
+{
+  Relation()
+| SingleAttSFW()
+}
+
+//String JoinItem() :
+//{String i; String s;}
+//{
+//    i = SingleAttSFW()
+//    {s = i;}
+//    {return s;}
+//
+//    | i = Relation()
+//      {s = i;}
+//      {return s;}
+//}
+
+//
+void JoinEquCondition() :
+{}
+{
+  Relation() < POINT > Attribute() < EQUAL > Relation() < POINT > Attribute()
+  [
+    (
+      < AND > Relation() < POINT > Attribute() < EQUAL > Relation() < POINT > Attribute()
+    )+
+  ]
+}
+
+//String JoinEquCondition() :
+//{String i,j,k,l; String s; Token t,p,q,r;}
+//{
+//    i = Relation() t = < POINT > j = Attribute() p = < EQUAL > k = Relation() q = < POINT > l = Attribute()
+//    {s = i + t.image + j + p.image + k + q.image + l;}
+//    [
+//      (
+//        r = < AND > i = Relation() t = < POINT > j = Attribute() p = < EQUAL > k = Relation() q = < POINT > l = Attribute()
+//        {s = s + r.image + i + t.image + j + p.image + k + q.image + l;}
+//      )+
+//    ]
+//
+//    {return s;}
+//}
+
+//
+void Func() :
+{}
+{
+  < COUNT >
+| < SUM >
+| < AVG >
+| < MAX >
+| < MIN >
+}
+
+//String Func() :
+//{Token t; }
+//{
+//    t = < COUNT >
+//    {return t.image;}
+//    | t = < SUM >
+//    {return t.image;}
+//    | t = < AVG >
+//    {return t.image;}
+//    | t = < MAX >
+//    {return t.image;}
+//    | t = < MIN >
+//    {return t.image;}
+//}
+
+//
+void Conditions() :
+{}
+{
+  Condition()
+  [
+    (
+      < AND > Condition()
+    )+
+  ]
+}
+//String Conditions() :
+//{Token t; String i; String j; String s;}
+//{
+//    i = Condition()
+//    {s = i;}
+//    [
+//      (
+//        t = < AND > j = Condition()
+//        {s = s+ t.image + j;}
+//      )+
+//    ]
+//    {return s;}
+//}
+
+//
+
+void Condition() :
+{}
+{
+  Relation() [ < POINT > Attribute() ] Action()
+}
+
+
+
+//String Condition() :
+//{String s; String i; String j; String k; Token t;}
+//{
+//    i = Relation()
+//    {s = i;}
+//    [
+//        t = < POINT > j = Attribute()
+//        {s = s + t.image + j;}
+//    ]
+//    k = Action()
+//    {s = s + k;}
+//
+//    {return s;}
+
+//}
+
+
+void Action() :
+{}
+{
+  < EQUAL > Equal()
+| < BETWEEN > Between() < AND > Between()
+| < IN > < LEFTPARENTHESES > In() < RIGHTPARENTHESES >
+| < HIGHER > Higher()
+| < LOWER > Lower()
+| < EHIGHER > Higher()
+| < ELOWER > Lower()
+}
+//
+
+//String Action() :
+//{Token t; Token k; Token l; String s;String i; String j;}
+//{
+//    t = < EQUAL > i = Equal()
+//    { s = t.image + i;}
+//    {return s;}
+//    | t = < BETWEEN > i = Between() k = < AND > j = Between()
+//    { s = t.image + i + k.image + j;}
+//    {return s;}
+//    | t = < IN > k = < LEFTPARENTHESES > i = In() l = < RIGHTPARENTHESES >
+//    {s = t.image + k.image + i + l.image; }
+//    { return s; }
+//    | t = < HIGHER > i = Higher()
+//    {s = t.image + i; }
+//    { return s; }
+//    | t = < LOWER > i = Lower()
+//    { s = t.image + i; }
+//    {return s; }
+//    | t = < EHIGHER > i = Higher()
+//    {s = t.image + i; }
+//    {return s;}
+//    | t = < ELOWER > i = Lower()
+//    {s = t.image + i;}
+//    {return s;}
+//}
+
+//String Equal() :
+//{String s; Token t;}
+//{
+//
+//  t= < INTEGER_LITERAL >
+//  { s = t.image;}
+//  { return s;}
+//
+//  | t = < FLOAT_LITERAL >
+//  { s = t.image;}
+//  {return s;}
+//
+//  | s = Pattern()
+//  {return s;}
+//
+//  | s = Attribute()
+//  { return s;}
+//
+//}
+//
+//String Between() :
+//{String s; Token t;}
+//{
+//
+//  t= < INTEGER_LITERAL >
+//  { s = t.image;}
+//  { return s;}
+//
+//  | t = < FLOAT_LITERAL >
+//  { s = t.image;}
+//  {return s;}
+//
+//  | s = Pattern()
+//  {return s;}
+//
+//}
+void Equal() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+| Attribute()
+}
+
+void Between() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+//
+void In() :
+{}
+{
+  SFW()
+| < LQUOTATION > IDENTIFIER() < LQUOTATION >
+  [
+    (
+      < COMMA > < LQUOTATION > IDENTIFIER() < LQUOTATION >
+    )+
+  ]
+}
+//String In() :
+//{Token t; Token k; String s;String a;}
+//{
+//
+//   a = SFW()
+//   {s = a;}
+//   {return s;}
+//
+//   | t = < LQUOTATION > a = IDENTIFIER() t = < LQUOTATION >
+//     {s = t.image + a + t.image;}
+//     [
+//        (
+//            k = < COMMA > t = < LQUOTATION > a = IDENTIFIER() t = < LQUOTATION >
+//            {s = s + k.image + t.image + a + t.image;}
+//         )+
+//     ]
+//
+//   {return s;}
+//
+//}
+
+//
+
+//String Higher() :
+//{String s; Token t;}
+//{
+//
+//  t= < INTEGER_LITERAL >
+//  { s = t.image;}
+//  { return s;}
+//
+//  | t = < FLOAT_LITERAL >
+//  { s = t.image;}
+//  {return s;}
+//
+//  | s = Pattern()
+//  {return s;}
+//
+//
+//}
+////
+//String Lower() :
+//{String s; Token t;}
+//{
+//
+//  t= < INTEGER_LITERAL >
+//  { s = t.image;}
+//  { return s;}
+//
+//  | t = < FLOAT_LITERAL >
+//  { s = t.image;}
+//  {return s;}
+//
+//  | s = Pattern()
+//  {return s;}
+//
+//
+//}
+
+void Higher() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+
+void Lower() :
+{}
+{
+  < INTEGER_LITERAL >
+| < FLOAT_LITERAL >
+| Pattern()
+}
+//
+///*-------------------*/
+
+/*-------------------*/
+void Joinname() :
+{}
+{
+  Attribute()
+}
+
+void Attribute() :
+{}
+{
+  IDENTIFIER()
+}
+
+void Relation() :
+{}
+{
+  IDENTIFIER()
+}
+
+void Pattern() :
+{}
+{
+  < LQUOTATION >
+  (
+    IDENTIFIER()
+  | < STRDIGITS >
+  )
+  < LQUOTATION >
+}
+
+/*-------------------*/
+void IDENTIFIER() :
+{}
+{
+  < IDENTIFIER >
+}
+
+
+//String Joinname() :
+//{}
+//{
+//  {
+//  return Attribute();
+//  }
+//}
+////
+//String Attribute() :
+//{}
+//{
+//  {
+//  return IDENTIFIER();
+//  }
+//}
+////
+//String Relation() :
+//{}
+//{
+//  {
+//  return IDENTIFIER();
+//  }
+//}
+//
+//
+//String Pattern() :
+//{Token t; Token k;String s;String i;}
+//{
+//    t = < LQUOTATION >
+//    ( i = IDENTIFIER()
+//     { s = t.image + i;}
+//    | k = < STRDIGITS >
+//     { s = t.image + k.image;}
+//    )
+//    t = < LQUOTATION >
+//    {s = s+ t.image;}
+//
+//   {
+//   return s;
+//   }
+//
+//
+//}
+///*-------------------*/
+//String IDENTIFIER() :
+//{ Token t; }
+//{
+//  t = < IDENTIFIER >
+//  {
+//  return t.toString();
+//  }
+//}
+//
