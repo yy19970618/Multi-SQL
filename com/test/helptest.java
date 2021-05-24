@@ -11,6 +11,47 @@ public class helptest/*@bgen(jjtree)*/implements MultiSQLPaserTreeConstants, Mul
     protected JJTMultiSQLPaserState jjtree = new JJTMultiSQLPaserState();
 
     public static void main(String args[]) throws ParseException {
+
+        /**
+         * The following examples are based on a scene in figure "example.png":
+         *
+         * Example 1: Query the person's id who's name is "Amy".
+         *
+         * Select Person.id from Person Where Person.name = "Amy";
+         *
+         * Example 2: Query the person's password who's id is "001"
+         *
+         * Select Password.password From Password Where Password.id = "001";
+         *
+         * Example 3: Query the person's blogs who's id is "002" and the keywords of blogs contains "phone".
+         *
+         * Select Blog from Blog
+         * Where Blog.Match({id:{=, "002"}, keyword:list< {value:{"like", phone}}> });
+         *
+         * Example 4: Query the persons's id who like Amy’s likers.
+         *
+         * Select Social.Path1.n3.pid from Social
+         * Where Social.Path1(Person:{name:{=, "Amy"}} -> Relation:{type:{=, "like"}} -> Person:{} <- Relation:{type:{=,"like"}} <- Person:{});
+         *
+         * Example 5: Query the persons's age who like Amy’s likers.
+         *
+         * Select Person.age from Person
+         * Where Person.id in
+         *   (Select Social.Path1.n3.pid Where Social.Path1(Person:{name:{=, "Amy"}}  -> Relation:{type:{=, "like"}}-> Person:{} <- Relation:{type:{=,"like"}} <- Person:{}));
+         *
+         * Example 6: Query blogs made by persons who are 20 years old and are female.
+         *
+         * Select {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]}
+         * From JOIN Person, Blog RULE {Person.id, Person.age, Person.gender, blogs:[{Blog.keyword, Blog.content}]} WITH Person.id = Blog.person
+         * Where Person.age = 20 and Person.gender = 0;
+         *
+         * Example 7: Query posts made by users who are female and younger than 20 in Amy's liker
+         *
+         * Select {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]}
+         *  From JOIN Person, Blog RULE {Person.id, Person.age, Person.gender, blogs : [{Blog.keyword, Blog.content}]} WITH Person.id = Blog.person
+         * Where Person.age < 20 and Person.gender = 0 and Person.id in
+         *   (Select Social.Path1.n2.pid Where Social.Path1(Person:{name:{=, "Amy"}} -> Relation:{type:{=, "like"}} -> Person:{}));
+         */
         ArrayList<String> example = new ArrayList<String>(getFileContent("com/test/example.txt"));
         for(int i = 0; i < example.size(); i++) {
             System.out.println("Reading from standard input...");
